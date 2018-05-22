@@ -1,0 +1,1 @@
+FROM: https://github.com/SumoLogic/sumologic-aws-lambda/blob/master/s3/node.js/s3.js

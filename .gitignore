@@ -1,0 +1,20 @@
+# Terraform
+# -----------
+# these may contain credentials and shouldn't be stored in source control
+*.tfplan
+
+# generated
+.terraform
+*.tfstate
+*.tfstate.backup
+
+# macOS
+# -----------
+# annoying/automated/OS X files
+*~
+.history
+.DS_Store
+
+# tmp
+# -----------
+ssh
