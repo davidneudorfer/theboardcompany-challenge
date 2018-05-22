@@ -1,4 +1,7 @@
-# BASE
+//
+// Base
+//
+
 aws_region = "us-west-2"
 
 environment = "ops"
@@ -11,7 +14,7 @@ base_domain = "tbc.vasandani.me"
 // Registry
 //
 
-registry_spot_price = "0.07"
+registry_spot_price = "0.007"
 
 registry_instance_size = "m3.medium"
 

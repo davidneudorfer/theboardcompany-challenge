@@ -1,25 +1,34 @@
+# The Board Company
 
+## Challenge
+Tasked with setting up an Application Load Balancer (ELBv2) that outputs logs to S3 I chose to use S3 Event Notifications to trigger a Lambda function that:
 
-URL: https://challenge.tbc.vasandani.me/
-Bucket: challenge-dev-alb-logs
-Log Collector: https://challenge-logcollector.herokuapp.com/log/view/theboardcompany
+- unzips gz file
+- transforms json
+- POST to log collector
 
-Modified [aws-sample/amazon-elasticsearch-lambda-samples](https://github.com/aws-samples/amazon-elasticsearch-lambda-samples/blob/master/src/s3_lambda_es.js) to extract gzip'd log files and push custom json to custom endpoint.
+Useful Links:
 
-Run `make todo` to see all TODO, FIXME, and FUTURE tags. Most are inline with the code some 
-```
-# TODO: setup locust.io on SpotFleet
-# TODO: ensure all resource names are underscore _ vs -
-# TODO: add CloudWatch Log "All 100 log records added to ES." to CloudWatch Metrics
-# TODO: add s3 lifecycle policy for ALB logs
-# TODO: templatize lambda script
-# TODO: peer vpc's so you only need one bastion instance
+- URL: https://challenge.tbc.vasandani.me/
+- Bucket: challenge-dev-alb-logs
+- Log Collector: https://challenge-logcollector.herokuapp.com/log/view/theboardcompany
 
-# FIXME: ssh though bastion network ALB fails to connect
+## Terraform
 
-# FUTURE: changes to launch_specification are ignored
-# https://github.com/terraform-providers/terraform-provider-aws/issues/741
+This repo contains all the code to provision all environments. To speed up development offical and community modules from the Terraform Registry were used.
 
-# FUTURE: launch_specification -> iam_instance_profile doesn't work. use iam_instance_profile_arn instead.
-# https://github.com/terraform-providers/terraform-provider-aws/issues/4449
-```
+## AWS
+
+ops  
+dev
+
+## Lambda
+Modified [aws-sample/amazon-elasticsearch-lambda-samples](https://github.com/aws-samples/amazon-elasticsearch-lambda-samples/blob/master/src/s3_lambda_es.js) to extract gzip'd log files and push modified json to custom endpoint.
+
+From the source:
+> To avoid loading an entire (typically large) log file into memory, this is implemented as a pipeline of filters, streaming log data from S3 to the [log collector].
+> - Flow: S3 file stream -> Log Line stream -> Log Record stream -> [log collector]
+
+## Make
+
+run `make` to see all available commands.

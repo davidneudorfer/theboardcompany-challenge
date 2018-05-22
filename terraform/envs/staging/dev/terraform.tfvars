@@ -14,7 +14,7 @@ base_domain = "tbc.vasandani.me"
 // App
 //
 
-app_spot_price = "0.07"
+app_spot_price = "0.007"
 
 app_instance_size = "m3.medium"
 

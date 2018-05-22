@@ -1,4 +1,7 @@
-# BASE
+//
+// Base
+//
+
 variable "aws_key_name" {
   default = "theboardcompany"
 }
@@ -35,8 +38,12 @@ variable "base_domain" {
   default = "tbc.vasandani.me"
 }
 
+//
+// App
+//
+
 variable "app_spot_price" {
-  default = "0.07"
+  default = "0.007"
 }
 
 variable "app_instance_size" {

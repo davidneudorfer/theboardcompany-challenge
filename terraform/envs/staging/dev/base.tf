@@ -20,7 +20,7 @@ module "theboardcompany_vpc" {
 }
 
 module "bastion" {
-  source = "../../../modules/aws/bastion"
+  source = "../../../modules/aws/bastion-host"
 
   bucket_name = "tbc-bastion-${var.environment}-logs"
 

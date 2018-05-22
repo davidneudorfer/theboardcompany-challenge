@@ -1,4 +1,7 @@
-# BASE
+//
+// Base
+//
+
 variable "aws_region" {
   default = "us-west-2"
 }
@@ -36,7 +39,7 @@ variable "base_domain" {
 //
 
 variable "registry_spot_price" {
-  default = "0.07"
+  default = "0.007"
 }
 
 variable "registry_instance_size" {

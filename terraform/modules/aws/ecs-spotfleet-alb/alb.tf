@@ -28,7 +28,6 @@ resource "aws_security_group" "ecs_alb" {
 
 data "aws_elb_service_account" "main" {}
 
-# https://www.terraform.io/docs/providers/aws/r/s3_bucket.html
 resource "aws_s3_bucket" "alb_logs" {
   bucket = "${var.alb_log_bucket_name}"
   region = "${var.region}"
@@ -75,62 +74,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     # filter_suffix       = ".gz"
   }
 }
-
-# resource "aws_alb" "main" {
-#   name                             = "${var.app_name}"
-#   subnets                          = ["${var.public_subnets}"]
-#   security_groups                  = ["${aws_security_group.ecs_alb.id}"]
-#   enable_cross_zone_load_balancing = false
-#   enable_http2                     = true
-
-#   access_logs {
-#     bucket  = "${aws_s3_bucket.alb_logs.bucket}"
-#     prefix  = "${var.app_name}-alb"
-#     enabled = true
-#   }
-
-#   tags {
-#     Name = "${var.app_name}"
-#   }
-# }
-
-# resource "aws_alb_target_group" "main" {
-#   port     = "${var.app_port}"
-#   protocol = "HTTP"
-#   vpc_id   = "${var.vpc}"
-
-#   tags {
-#     Name = "${var.app_name}"
-#   }
-
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
-
-# resource "aws_alb_listener" "http" {
-#   load_balancer_arn = "${aws_alb.main.id}"
-#   port              = "80"
-#   protocol          = "HTTP"
-
-#   default_action {
-#     target_group_arn = "${aws_alb_target_group.main.id}"
-#     type             = "forward"
-#   }
-# }
-
-# resource "aws_alb_listener" "https" {
-#   load_balancer_arn = "${aws_alb.main.id}"
-#   port              = "443"
-#   protocol          = "HTTPS"
-#   ssl_policy        = "ELBSecurityPolicy-2015-05"
-#   certificate_arn   = "${var.acm}"
-
-#   default_action {
-#     target_group_arn = "${aws_alb_target_group.main.id}"
-#     type             = "forward"
-#   }
-# }
 
 resource "aws_route53_record" "www" {
   zone_id = "${var.route53_zone}"

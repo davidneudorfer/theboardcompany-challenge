@@ -33,7 +33,6 @@ endif
 
 # Set target directory
 # ------------------------
-# Checks if
 ifneq ($(filter $(TBCENV),$(STAGING)),)
 ENVDIR=terraform/envs/staging/$(TBCENV)
 PREFIX=staging
@@ -73,37 +72,6 @@ spot:
 	  --product-descriptions "Linux/UNIX (Amazon VPC)" \
 	  --instance-types m3.medium | jq -r '.[][].SpotPrice' | jq -s max
 
-# TODO: ensure only one key is created if it already exists
-private-key-describe: ## list key pairs
-	@aws ec2 describe-key-pairs | jq -r '.KeyPairs[].KeyName'
-
-private-key-generate: ## generate key
-	@ssh-keygen -q -t rsa -b 4096 -N "" -C "theboardcompany" -f /tmp/theboardcompany
-
-private-key-import: ## import keypair
-	@aws ec2 import-key-pair \
-	  --key-name theboardcompany \
-	  --public-key-material file:///tmp/theboardcompany.pub
-
-private-key-move: ## move private key
-	@mkdir -p ssh && mv /tmp/theboardcompany* ./ssh/
-
-private: private-key-generate private-key-import private-key-move
-
-# TODO: code to help with private key
-config-bucket : ## first time setup to ensure application config bucket exists
-	@BUCKET="$$(aws s3 --profile $$CLIENT ls | grep $$CLIENT-config)"; \
-	if [[ $$? -eq 1 ]]; then \
-		echo "$(BUCKET)"; \
-		aws s3 --profile $(CLIENT) mb s3://$(CLIENT)-config; \
-	else \
-		echo "bucket already exists"; \
-	fi
-	@echo "ensure versioning is enabled"
-	@aws s3api --profile $(CLIENT) put-bucket-versioning \
-	  --bucket $(CLIENT)-config \
-		--versioning-configuration Status=Enabled
-
 # Terraform shortcuts
 # ------------------------
 
@@ -123,13 +91,12 @@ apply: ## terraform: apply outputed plan
 	@cd $(ENVDIR); \
 	  terraform apply terraform.tfplan
 
-output: ## terraform: print all outputs
+output: ## terraform: print environment outputs
 	@cd $(ENVDIR); \
 	  terraform output
 
 destroy: ## terraform: destroy environment
 	@cd $(ENVDIR); \
-		aws s3 rb s3://tbc-bastion-logs --force; \
 	  terraform destroy --force
 
 # Lambda
@@ -171,14 +138,14 @@ docker:
 # Notes:
 # ------------------------
 
-todo: ## list all TODO, FIXME, and FUTURE code tags
+todo: ## list all TODO, FIXME, and FUTURE tags
 	@leasot --filetype .yaml --tags FUTURE *
 
 # PHONY (non-file) Targets
 # ------------------------
-.PHONY: all plan apply output lambda
+.PHONY: all aws bucket spot init get plan apply output destroy lambda docker
 # `make help` -  see http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 # ------------------------------------------------------------------------------------
 
-help: ## Show this help
+help: ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
