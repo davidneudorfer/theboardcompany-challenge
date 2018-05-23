@@ -128,6 +128,7 @@ lambda:
 
 # Docker
 # ------------------------
+
 DOCKERS = letsencrypt
 docker:
 	@echo ">>> building docker images <<<"
@@ -142,6 +143,22 @@ docker:
 				docker push docker.lzops.io/lrnz/$(docker):latest; \
 				echo $$(find -s . ! -name "*.md5" -type f -exec md5 {} \; | md5) > .md5; \
 			fi);)
+
+# SSH Key
+# ------------------------
+
+private-key-generate: ## generate key
+    @ssh-keygen -q -t rsa -b 4096 -N "" -C "theboardcompany" -f /tmp/theboardcompany
+
+private-key-import: ## import keypair
+    @aws ec2 import-key-pair \
+      --key-name theboardcompany \
+      --public-key-material file:///tmp/theboardcompany.pub
+
+private-key-move: ## move private key
+    @mkdir -p ssh && mv /tmp/theboardcompany* ./ssh/
+
+ssh: private-key-generate private-key-import private-key-move
 
 # Notes:
 # ------------------------
