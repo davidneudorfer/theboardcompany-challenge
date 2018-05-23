@@ -148,15 +148,15 @@ docker:
 # ------------------------
 
 private-key-generate: ## generate key
-    @ssh-keygen -q -t rsa -b 4096 -N "" -C "theboardcompany" -f /tmp/theboardcompany
+	@ssh-keygen -q -t rsa -b 4096 -N "" -C "theboardcompany" -f /tmp/theboardcompany
 
 private-key-import: ## import keypair
-    @aws ec2 import-key-pair \
-      --key-name theboardcompany \
-      --public-key-material file:///tmp/theboardcompany.pub
+	@aws ec2 import-key-pair \
+		--key-name theboardcompany \
+		--public-key-material file:///tmp/theboardcompany.pub
 
 private-key-move: ## move private key
-    @mkdir -p ssh && mv /tmp/theboardcompany* ./ssh/
+	@mkdir -p ssh && mv /tmp/theboardcompany* ./ssh/
 
 ssh: private-key-generate private-key-import private-key-move
 
