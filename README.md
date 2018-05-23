@@ -18,15 +18,16 @@ Useful Links:
 2) Copy the NS records from tbc.vasandani.me and create a new record with type Name Server and the value the NS records you copied from step 1.
 3) Update [terraform/envs/staging/base/terraform.tfvars](https://github.com/davidneudorfer/theboardcompany-challenge/blob/master/terraform/envs/staging/base/terraform.tfvars#L9) with the base domain
 5) Generate a new key by running `make ssh`. This will geneate a new SSH key named "theboardcomapny", upload it to AWS, and place it in a folder named ssh in the current directory.
-6) Run `TBCENV=base make plan apply` to build out a terraform state that includes dns zone info and ACM certificate info.
-5) Run `TBCENV=ops make plan apply` to build out a vpc that contains:
+6) run `make bucket` to setup an S3 bucket named `theboardcomapny-terraform` to store terraform config.
+6) Run `TBCENV=base make init plan apply` to build out a terraform state that includes dns zone info and ACM certificate info.
+5) Run `TBCENV=ops make init plan apply` to build out a vpc that contains:
     - Bastion Host
         - AutoScaled t2.nano
         - Network Load Balancer
     - Docker Registry
         - Elastic Container Service
         - SpotFleet
-5) Run `TBCENV=dev make plan apply` to build out a vpc that contains:
+5) Run `TBCENV=dev make init plan apply` to build out a vpc that contains:
     - Bastion Host
     - Challenge App
         - Elastic Container Service
