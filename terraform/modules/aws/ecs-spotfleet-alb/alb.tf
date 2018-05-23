@@ -80,9 +80,6 @@ resource "aws_route53_record" "www" {
   name    = "${var.fqdn}"
   type    = "A"
 
-  # name                   = "${aws_alb.main.dns_name}"
-  # zone_id                = "${aws_alb.main.zone_id}"
-
   alias {
     name                   = "${module.alb.dns_name}"
     zone_id                = "${module.alb.load_balancer_zone_id}"

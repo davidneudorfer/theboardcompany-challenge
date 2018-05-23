@@ -31,10 +31,9 @@ module "bastion" {
   is_lb_private     = false
   create_dns_record = true
 
-  bastion_host_key_pair = "${var.key_pair}"
-
-  hosted_zone_name    = "${data.aws_route53_zone.main.zone_id}"
-  bastion_record_name = "bastion-${var.environment}.${var.base_domain}"
+  bastion_host_key_pair = "${data.terraform_remote_state.base.aws_key_name}"
+  hosted_zone_name      = "${data.terraform_remote_state.base.zone_id}"
+  bastion_record_name   = "bastion-${var.environment}.${data.terraform_remote_state.base.base_domain}"
 
   elb_subnets                = "${module.theboardcompany_vpc.private_subnets}"
   auto_scaling_group_subnets = "${module.theboardcompany_vpc.public_subnets}"
@@ -42,6 +41,8 @@ module "bastion" {
   tags {
     Name        = "tbc-${var.environment}-bastion-host"
     description = "my_bastion_description"
+    Terraform   = "true"
+    Environment = "${var.environment}"
   }
 }
 
@@ -58,13 +59,13 @@ module "app" {
   public_subnets              = "${module.theboardcompany_vpc.public_subnets}"
   spot_prices                 = ["${var.app_spot_price}", "${var.app_spot_price}"]
 
-  key_name            = "${var.aws_key_name}"
+  key_name            = "${data.terraform_remote_state.base.aws_key_name}"
   app_name            = "${var.app_subdomain}-${var.environment}"
   alb_log_bucket_name = "${var.app_subdomain}-${var.environment}-alb-logs"
 
-  fqdn         = "${var.app_subdomain}.${var.base_domain}"
-  route53_zone = "${data.aws_route53_zone.main.zone_id}"
-  acm          = "${data.aws_acm_certificate.main.arn}"
+  fqdn         = "${var.app_subdomain}.${data.terraform_remote_state.base.base_domain}"
+  route53_zone = "${data.terraform_remote_state.base.zone_id}"
+  acm          = "${data.terraform_remote_state.base.certificate_arn}"
 
   image          = "${var.app_image}"
   service_count  = "${var.app_service_count}"

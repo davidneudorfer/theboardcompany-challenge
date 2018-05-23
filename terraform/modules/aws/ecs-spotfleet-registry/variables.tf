@@ -8,6 +8,10 @@ variable "vpc_id" {
   description = "VPC id for ECS cluster"
 }
 
+variable "alb_log_bucket_name" {
+  default = "demo-app-alb-logs"
+}
+
 variable "acm" {}
 variable "route53_zone" {}
 

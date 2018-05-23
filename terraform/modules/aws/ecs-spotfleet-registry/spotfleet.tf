@@ -156,7 +156,7 @@ data "aws_ami" "ecs_ami" {
 data "template_file" "user_data" {
   template = <<USER_DATA
 #!/bin/bash
-echo "ECS_CLUSTER=${aws_ecs_cluster.main.name}" >> /etc/ecs/ecs.config
+echo "ECS_CLUSTER=${var.app_name}" >> /etc/ecs/ecs.config
 USER_DATA
 }
 
@@ -184,7 +184,9 @@ resource "aws_spot_fleet_request" "main" {
     }
 
     tags {
-      Name = "${var.app_name}"
+      Name        = "${var.app_name}"
+      Environment = "${var.environment}"
+      Terraform   = "true"
     }
 
     user_data = "${data.template_file.user_data.rendered}"
@@ -206,7 +208,9 @@ resource "aws_spot_fleet_request" "main" {
     }
 
     tags {
-      Name = "${var.app_name}"
+      Name        = "${var.app_name}"
+      Environment = "${var.environment}"
+      Terraform   = "true"
     }
 
     user_data = "${data.template_file.user_data.rendered}"

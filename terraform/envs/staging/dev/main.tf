@@ -24,13 +24,12 @@ provider "template" {
   version = "~> 1.0"
 }
 
-data "aws_acm_certificate" "main" {
-  domain      = "${var.base_domain}"
-  types       = ["AMAZON_ISSUED"]
-  most_recent = true
-}
+data "terraform_remote_state" "base" {
+  backend = "s3"
 
-data "aws_route53_zone" "main" {
-  name         = "${var.base_domain}."
-  private_zone = false
+  config {
+    bucket = "theboardcompany-terraform"
+    key    = "staging/base/terraform.tfstate"
+    region = "${var.aws_region}"
+  }
 }

@@ -21,7 +21,7 @@ endif
 
 # List of possible environments
 # ------------------------
-STAGING = dev ops
+STAGING = base ops dev
 ALLENVS = $(STAGING) production
 
 # Check ENV name
@@ -98,6 +98,14 @@ output: ## terraform: print environment outputs
 destroy: ## terraform: destroy environment
 	@cd $(ENVDIR); \
 	  terraform destroy --force
+
+setup:
+	@$(foreach env,$(STAGING),\
+		echo ">>> building $(env) environment <<<"; \
+		export TBCENV=$(env); echo $(TBCENV); export -n TBCENV; \
+	)
+
+# set TBCENV=$(env); make init plan apply; unset TBCENV; \
 
 # Lambda
 # ------------------------

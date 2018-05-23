@@ -8,7 +8,7 @@ terraform {
 
   backend "s3" {
     bucket = "theboardcompany-terraform"
-    key    = "staging/ops/terraform.tfstate"
+    key    = "staging/base/terraform.tfstate"
     region = "us-west-2"
   }
 }
@@ -24,6 +24,10 @@ provider "template" {
   version = "~> 1.0"
 }
 
+provider "null" {
+  version = "~> 1.0"
+}
+
 # TODO: copy private key to S3 bucket
 # TODO: check if private key is downloaded added to ssh agent
 # resource "aws_key_pair" "deployer" {
@@ -31,14 +35,36 @@ provider "template" {
 #   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD3F6tyPEFEzV0LX3X8BsXdMsQz1x2cEikKDEY0aIj41qgxMCP/iteneqXSIFZBp5vizPvaoIR3Um9xK7PGoW8giupGn+EPuxIA4cDM4vzOqOkiMPhz5XK0whEjkVzTo4+S0puvDZuwIsdiW9mxhJc7tgBNL0cYlWSYVkz4G/fslNfRPW5mYAM49f4fhtxPb5ok4Q2Lg9dPKVHO/Bgeu5woMc7RY0p1ej6D4CKFE6lymSDJpW0YHX/wqE9+cfEauh7xZcG0q9t2ta6F6fmX0agvpFyZo8aFbXeUBr7osSCJNgvavWbM/06niWrOvYX2xwWdhXmXSrbX8ZbabVohBK41 email@example.com"
 # }
 
-data "aws_elb_service_account" "main" {}
+resource "aws_acm_certificate" "cert" {
+  domain_name               = "${var.base_domain}"
+  subject_alternative_names = ["*.${var.base_domain}"]
+  validation_method         = "DNS"
 
-data "terraform_remote_state" "base" {
-  backend = "s3"
-
-  config {
-    bucket = "theboardcompany-terraform"
-    key    = "staging/base/terraform.tfstate"
-    region = "${var.aws_region}"
+  tags {
+    Name = "ops"
   }
 }
+
+data "aws_route53_zone" "zone" {
+  name = "${var.base_domain}."
+}
+
+resource "aws_route53_record" "cert_validation" {
+  name    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
+  type    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
+  zone_id = "${data.aws_route53_zone.zone.id}"
+  records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = "${aws_acm_certificate.cert.arn}"
+  validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
+}
+
+# resource "null_resource" "cluster" {
+#   provisioner "local-exec" {
+#     command = "echo 'hello world'"
+#   }
+# }
+

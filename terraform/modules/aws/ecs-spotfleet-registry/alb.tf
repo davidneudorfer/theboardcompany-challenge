@@ -26,47 +26,40 @@ resource "aws_security_group" "ecs_alb" {
   }
 }
 
-resource "aws_alb_target_group" "main" {
-  name     = "${var.app_name}"
-  port     = "${var.app_port}"
-  protocol = "HTTP"
-  vpc_id   = "${var.vpc_id}"
+data "aws_elb_service_account" "main" {}
 
-  lifecycle {
-    create_before_destroy = true
+resource "aws_s3_bucket" "alb_logs" {
+  bucket = "${var.alb_log_bucket_name}"
+  region = "${var.region}"
+  acl    = "private"
+
+  tags {
+    Name        = "${var.alb_log_bucket_name}"
+    Environment = "${var.environment}"
+    Terraform   = "true"
   }
+
+  policy = <<POLICY
+{
+  "Id": "Policy1526929955653",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Stmt1526929949208",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${var.alb_log_bucket_name}/*/AWSLogs/725725810126/*",
+      "Principal": {
+        "AWS": [
+          "797873946194"
+        ]
+      }
+    }
+  ]
 }
-
-resource "aws_alb" "main" {
-  name                             = "${var.app_name}"
-  subnets                          = ["${var.public_subnets}"]
-  security_groups                  = ["${aws_security_group.ecs_alb.id}"]
-  enable_cross_zone_load_balancing = false
-  enable_http2                     = true
-}
-
-resource "aws_alb_listener" "http" {
-  load_balancer_arn = "${aws_alb.main.id}"
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    target_group_arn = "${aws_alb_target_group.main.id}"
-    type             = "forward"
-  }
-}
-
-resource "aws_alb_listener" "https" {
-  load_balancer_arn = "${aws_alb.main.id}"
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2015-05"
-  certificate_arn   = "${var.acm}"
-
-  default_action {
-    target_group_arn = "${aws_alb_target_group.main.id}"
-    type             = "forward"
-  }
+POLICY
 }
 
 resource "aws_route53_record" "www" {
@@ -75,8 +68,27 @@ resource "aws_route53_record" "www" {
   type    = "A"
 
   alias {
-    name                   = "${aws_alb.main.dns_name}"
-    zone_id                = "${aws_alb.main.zone_id}"
+    name                   = "${module.alb.dns_name}"
+    zone_id                = "${module.alb.load_balancer_zone_id}"
     evaluate_target_health = true
   }
+}
+
+# https://registry.terraform.io/modules/terraform-aws-modules/alb/aws/3.4.0
+module "alb" {
+  source                   = "terraform-aws-modules/alb/aws"
+  version                  = "3.4.0"
+  load_balancer_name       = "${var.app_name}"
+  security_groups          = ["${aws_security_group.ecs_alb.id}"]
+  log_bucket_name          = "${aws_s3_bucket.alb_logs.bucket}"
+  log_location_prefix      = "${var.app_name}-alb"
+  subnets                  = ["${var.public_subnets}"]
+  tags                     = "${map("Environment", "${var.environment}")}"
+  vpc_id                   = "${var.vpc_id}"
+  https_listeners          = "${list(map("certificate_arn", "${var.acm}", "port", 443))}"
+  https_listeners_count    = "1"
+  http_tcp_listeners       = "${list(map("port", "80", "protocol", "HTTP"))}"
+  http_tcp_listeners_count = "1"
+  target_groups            = "${list(map("name", "${var.app_name}", "backend_protocol", "HTTP", "backend_port", "80"))}"
+  target_groups_count      = "1"
 }

@@ -13,6 +13,14 @@ Useful Links:
 - Bucket: challenge-dev-alb-logs
 - Log Collector: https://challenge-logcollector.herokuapp.com/log/view/theboardcompany
 
+## Setup
+
+1) manually create a new zone (i.e. tbc.vasandani.me) this will become the base domain
+2) copy the NS records from tbc.vasandani.me and create a new record with type Name Server and the value the NS records you copied from step 1.
+3) update terraform/envs/staging/base/terraform.tfvars with the base domain
+4) run `TBCENV=base make plan apply`
+5) 
+
 ## Terraform
 
 This repo contains all the code to provision all environments. To speed up development offical and community modules from the Terraform Registry were used.

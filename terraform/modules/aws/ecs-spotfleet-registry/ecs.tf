@@ -84,7 +84,7 @@ resource "aws_ecs_service" "main" {
   iam_role        = "${aws_iam_role.registry_ecs_service.arn}"
 
   load_balancer {
-    target_group_arn = "${aws_alb_target_group.main.id}"
+    target_group_arn = "${module.alb.target_group_arns[0]}"
     container_name   = "${var.app_name}"
     container_port   = "${var.container_port}"
   }

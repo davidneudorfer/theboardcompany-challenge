@@ -22,7 +22,7 @@ module "theboardcompany_vpc" {
 module "bastion" {
   source = "../../../modules/aws/bastion-host"
 
-  bucket_name = "tbc-bastion-logs"
+  bucket_name = "tbc-bastion-${var.environment}-logs"
 
   region = "${var.aws_region}"
 
@@ -31,9 +31,9 @@ module "bastion" {
   is_lb_private     = false
   create_dns_record = true
 
-  bastion_host_key_pair = "${var.aws_key_name}"
-  hosted_zone_name      = "${aws_route53_zone.zone.zone_id}"
-  bastion_record_name   = "bastion-${var.environment}.${var.base_domain}"
+  bastion_host_key_pair = "${data.terraform_remote_state.base.aws_key_name}"
+  hosted_zone_name      = "${data.terraform_remote_state.base.zone_id}"
+  bastion_record_name   = "bastion-${var.environment}.${data.terraform_remote_state.base.base_domain}"
 
   elb_subnets                = "${module.theboardcompany_vpc.private_subnets}"
   auto_scaling_group_subnets = "${module.theboardcompany_vpc.public_subnets}"
@@ -58,18 +58,17 @@ module "registry" {
 
   spot_prices = ["${var.registry_spot_price}", "${var.registry_spot_price}"]
 
-  key_name = "${var.aws_key_name}"
+  key_name            = "${data.terraform_remote_state.base.aws_key_name}"
+  app_name            = "${var.registry_app_name}-${var.environment}"
+  alb_log_bucket_name = "${var.registry_subdomain}-${var.environment}-alb-logs"
 
-  fqdn         = "${var.registry_subdomain}.${var.base_domain}"
-  route53_zone = "${aws_route53_zone.zone.zone_id}"
-  acm          = "${aws_acm_certificate_validation.cert.certificate_arn}"
+  fqdn         = "${var.registry_subdomain}.${data.terraform_remote_state.base.base_domain}"
+  route53_zone = "${data.terraform_remote_state.base.zone_id}"
+  acm          = "${data.terraform_remote_state.base.certificate_arn}"
 
-  app_name = "registry-${var.environment}"
-  image    = "registry:latest"
-
-  service_count = 1
-
-  instance_type  = "${var.registry_instance_size}"
-  instance_count = 1
-  volume_size    = 100
+  image          = "${var.registry_image}"
+  service_count  = "${var.registry_service_count}"
+  instance_type  = "${var.registry_instance_type}"
+  instance_count = "${var.registry_instance_count}"
+  volume_size    = "${var.registry_volume_size}"
 }
